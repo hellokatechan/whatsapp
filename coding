@@ -1,0 +1,47 @@
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(readr)
+library(tidytext)
+library(ggplot2)
+library(data.table)
+
+#got an error about when using read_lines - got sol from here https://github.com/r-lib/lintr/issues/327
+rawchat <- readr::read_lines("/Users/tinkerbellpixie/Desktop/_chat.txt") 
+class(rawchat)
+head(rawchat)
+tail(rawchat)
+str(rawchat) # data is a character vector 
+# difference between character vector vs character string 
+# https://www.youtube.com/watch?v=tN_1jgSunps&ab_channel=StevePittard
+length(rawchat) # confirm that data is indeed a character vector
+
+rawchat1 <- colsplit(rawchat, ",|M:", names=c("Date","Time", "Text"))
+head(rawchat1, n=20)
+class(rawchat1)
+colnames(rawchat1)
+
+#change all letters to lowercase
+rawchat1$Text <- tolower(rawchat1$Text)
+
+#create a copy of the dataframe named rawchat1
+copyrawchat <- copy(rawchat1)
+
+#tokenization
+vocab<- copyrawchat %>% unnest_tokens(Text, Text)
+head(vocab)
+
+total_unique_ld <- vocab %>% 
+  group_by(Text) %>% 
+  count(Text) %>% 
+  summarize(total_words = sum(n),
+            unique_words = n(),
+            lex_div = unique_words / total_words) %>% 
+  ungroup()
+
+total_unique_ld
+
+bigrams <- rawchat1() %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
